@@ -1,82 +1,60 @@
-mtbi-structure-function-longitudinal
-Analysis code for a longitudinal study investigating structural and functional brain network changes in patients with mild Traumatic Brain Injury (mTBI). This repository provides a complete pipeline to analyze how brain connectivity evolves over time and its relationship with cognitive recovery.
+**mtbi-structure-function-longitudinal**
+Analysis code for a longitudinal study investigating structural and functional brain network changes in patients with mild Traumatic Brain Injury (mTBI). 
 
-Overview
-This repository contains MATLAB scripts for processing two types of brain connectivity data:
+This repository provides a complete pipeline to analyze connectivity evolution and its relationship with cognitive recovery.
 
-Functional Network Connectivity (FNC): Derived from resting-state fMRI (rs-fMRI) time-series.
+📌 Overview
+This repository contains MATLAB scripts for a multi-modal longitudinal analysis:
 
-Structural Connectivity (SC): Derived from Diffusion Tensor Imaging (DTI) streamline counts or tractography matrices.
+Functional Network Connectivity (FNC): Derived from resting-state fMRI (rs-fMRI).
 
-The pipeline performs edge-wise statistical modeling to identify longitudinal changes and brain-behavior associations.
+Structural Connectivity (SC): Network matrices derived from DTI tractography.
 
-Key Analysis Features
-1. Connectivity Computation
-FNC (Functional): Calculates subject-level Fisher-Z transformed connectivity matrices from Schaefer-network time-series.
+DTI Diffusion Metrics: White matter integrity indices (FA, AD, RD, MD) extracted from network-related regions.
 
-SC (Structural): Loads subject-wise DTI network matrices and extracts upper-triangular edge values for statistical analysis.
+**Key Analysis Features**
+**1. Functional & Structural Network Analysis**
+Connectivity Computation: Fisher-Z transformation for FNC and upper-triangular edge extraction for DTI matrices.
 
-2. Statistical Modeling
-Longitudinal LME: Employs Linear Mixed-Effects (LME) models to identify Group × Time interactions while controlling for Age and Sex:
+Edge-wise LME Modeling: Identifies Group × Time interactions while controlling for Age and Sex:
 
 Connectivity ~ Age + Sex + Group * Time + (1|Subject)
 
-Post-hoc Analysis: Performs T-tests for group-wise (Patient vs. Control) and time-wise (T0 vs. T1) comparisons on significant edges.
+Post-hoc Tests: T-tests for group-wise (Patient vs. Control) and time-wise (T0 vs. T1) comparisons.
 
-Cognitive Association: Assesses the relationship between connectivity changes and cognitive scores (e.g., WCST, Digit Span) using LME and Pearson correlations.
+**2. DTI Metrics & Cognition Analysis**
+Diffusion Indices: Analyzes FA (Fractional Anisotropy), AD (Axial), RD (Radial), and MD (Mean Diffusivity) for edges showing significant group effects in FNC.
 
-Joint Modeling: Explores the triple interaction (Score ~ Connectivity * Group * Time) to identify group-specific connectivity-behavior relationships.
+Patient-Specific LME: Assesses how white matter integrity changes relate to cognitive recovery over time:
 
-3. Multiple Comparison Correction
-Uses Benjamini-Hochberg FDR correction to control for Type I errors across all network edges.
+Cognition ~ DTI_Metric * Time + (1|Subject)
 
-Project Structure
-To run the analysis, organize your files as follows:
+Brain-Behavior Correlation: Pearson correlations between diffusion metrics and cognitive scores (e.g., WCST, Digit Span) for both Patients and Controls at each time point.
+
+
+**Project Structure**
+To ensure the scripts run correctly, please organize your inputs/ directory as follows:
 
 Plaintext
 
 repo_root/
-├── brain_comm_fnc_clean.m              # Main script for rs-fMRI FNC analysis
-├── brain_comm_DTI_connectivity_clean.m # Main script for DTI Structural analysis
-├── inputs/                             # Data directory (NOT included in repo)
-│   ├── age_patients.txt                # Age list (nPat x 1)
-│   ├── age_controls.txt                # Age list (nCon x 1)
-│   ├── sex_patients.txt                # Sex coding (0/1)
-│   ├── sex_controls.txt
-│   ├── NetInfo.txt                     # List of Node/Network names
-│   ├── data_T0.mat                     # rs-fMRI time-series at Baseline
-│   ├── data_T1.mat                     # rs-fMRI time-series at Follow-up
-│   ├── cognitive_patients.mat          # Cognitive scores [nPat x scores x time]
-│   ├── cognitive_controls.mat          # Cognitive scores [nCon x scores x time]
-│   └── dti_network/                    # Folder for DTI matrices (see below)
-│       ├── Patients/
-│       │   └── Sub01/
-│       │       ├── T0/Sub01_T0_fdt_network_matrix.txt
-│       │       └── T1/Sub01_T1_fdt_network_matrix.txt
-│       └── Controls/
-│           └── Con01/
-│               ├── T0/Con01_T0_fdt_network_matrix.txt
-│               └── T1/Con01_T1_fdt_network_matrix.txt
-└── outputs/                            # Results (.mat files) saved here
+├── brain_comm_fnc_clean.m              # rs-fMRI FNC analysis script
+├── brain_comm_DTI_connectivity_clean.m # DTI Network (SC) analysis script
+├── brain_comm_DTI_metrics_analysis.m   # DTI metrics (FA/AD/RD/MD) & Cognition
+├── inputs/                             # Data directory (NOT in repo)
+│   ├── NetInfo.txt                     # Network node labels
+│   ├── data_T0.mat / data_T1.mat       # fMRI time-series
+│   ├── dti_network/                    # Subject-wise DTI matrices (.txt)
+│   ├── WMint.mat                       # DTI metrics [nSub x Metric x Edge x Time]
+│   ├── EdgeTable.mat                   # Master edge information table
+│   ├── sig_edges_unc_G.mat             # Edges with significant group effects
+│   ├── cognitive_patients.mat          # [nPat x Score x Time]
+│   └── cognitive_controls.mat          # [nCon x Score x Time]
+└── outputs/                            # Generated results
 
 
+External Function: Requires fdr_bh.m (Download from MATLAB Central).
 
-External Function: This code requires fdr_bh.m for multiple comparison correction.
-Download from: MATLAB Central File Exchange - fdr_bh
-
-
-Usage
-Prepare Data: Place your demographics and cognitive data in the inputs/ folder.
-
-FNC Analysis: Run brain_comm_fnc_clean.m to analyze functional connectivity changes.
-
-DTI Analysis: Run brain_comm_DTI_connectivity_clean.m to analyze structural connectivity changes.
-
-Ensure your DTI text files follow the naming convention: <SubID>_<TimePoint>_fdt_network_matrix.txt.
-
-Results: Check the outputs/ folder for generated summary tables and statistical results.
-
-Citation
-If you use this code in your research, please cite:
-
-[Author Names], "Structural and Functional Brain Network Changes in mild Traumatic Brain Injury: A Longitudinal Study", Brain Communications, [Year].
+**Usage**
+FNC/SC Analysis: Run brain_comm_fnc_clean.m and brain_comm_DTI_connectivity_clean.m to identify significant edges.
+DTI Metrics Analysis: Ensure WMint.mat and sig_edges_unc_G.mat are prepared based on the FNC results, then run brain_comm_DTI_metrics_analysis.m.
